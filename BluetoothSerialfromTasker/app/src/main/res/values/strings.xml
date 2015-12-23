@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Bluetooth Serial from Tasker</string>
+    <string name="plugin_name">Bluetooth Serial</string>
+
+    <string name="mac_hint">00:11:22:AA:BB:CC (Paired MAC Address)</string>
+    <string name="message_hint">Message to send</string>
+    <string name="checkbox_message">Include CRLF (\\r\\n)</string>
+    <string name="button_message">Show all paired devices</string>
+</resources>
