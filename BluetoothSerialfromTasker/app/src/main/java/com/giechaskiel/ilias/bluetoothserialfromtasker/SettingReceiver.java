@@ -57,6 +57,9 @@ public class SettingReceiver extends AbstractPluginSettingReceiver {
             return;
         }
 
+        // Can also use the getRemoteDevice() function, but it always return an object for a valid
+        // address, even if it has not previously been seen (IllegalArgumentException otherwise).
+        // This is linear, but in general the number of paired devices is small.
         for (BluetoothDevice device : mBluetoothAdapter.getBondedDevices()) {
             if (device.getAddress().equals(mac)) {
                 BluetoothSocket socket = null;
