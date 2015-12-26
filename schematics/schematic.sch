@@ -36,7 +36,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Arduino Bluetooth switch"
-Date "23 dec 2015"
+Date "26 dec 2015"
 Rev ""
 Comp "Ilias Giechaskiel"
 Comment1 "https://ilias.giechaskiel.com"
@@ -155,32 +155,14 @@ Wire Wire Line
 Wire Wire Line
 	4900 4050 4900 3000
 Wire Wire Line
-	6150 3750 5100 3750
-Wire Wire Line
-	6150 1650 6150 3750
-Wire Wire Line
-	6150 1750 6300 1750
-Wire Wire Line
-	5100 3250 6150 3250
-Connection ~ 6150 3250
-Wire Wire Line
-	5100 2700 6150 2700
-Connection ~ 6150 2700
+	4750 1750 6300 1750
 Wire Wire Line
 	6300 1650 6150 1650
 Connection ~ 6150 1750
 Wire Wire Line
-	4450 1650 5900 1650
+	4500 1450 6300 1450
 Wire Wire Line
-	5900 1650 5900 1450
-Wire Wire Line
-	5900 1450 6300 1450
-Wire Wire Line
-	4450 1750 5750 1750
-Wire Wire Line
-	5750 1750 5750 1350
-Wire Wire Line
-	5750 1350 6300 1350
+	4600 1350 6300 1350
 Wire Wire Line
 	4450 1950 4450 4650
 Connection ~ 4800 4550
@@ -215,4 +197,26 @@ Wire Wire Line
 	9000 1850 9000 4800
 Wire Wire Line
 	9000 4800 2350 4800
+Connection ~ 2350 4450
+Connection ~ 2350 4550
+Wire Wire Line
+	4450 1650 4500 1650
+Wire Wire Line
+	4500 1650 4500 1450
+Wire Wire Line
+	4450 1750 4600 1750
+Wire Wire Line
+	4600 1750 4600 1350
+Wire Wire Line
+	6150 1650 6150 1750
+Wire Wire Line
+	4750 1750 4750 3750
+Wire Wire Line
+	4750 2700 5100 2700
+Wire Wire Line
+	4750 3250 5100 3250
+Connection ~ 4750 2700
+Wire Wire Line
+	4750 3750 5100 3750
+Connection ~ 4750 3250
 $EndSCHEMATC
