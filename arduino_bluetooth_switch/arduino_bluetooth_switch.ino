@@ -24,6 +24,9 @@
 // Max length for incoming commands
 #define AR_LEN 150
 
+// Maximum delay between bluetooth AP resets
+#define MAX_CONTINUOUS 60*60*1000
+
 // Bluetooth device name and pairing code
 #define BT_NAME "YOUR-NAME"
 #define BT_PASS "YOUR_PASS"
@@ -33,9 +36,10 @@ SoftwareSerial bluetooth(RX_PIN, TX_PIN);
 char input[AR_LEN + 1];
 int index = 0;
 bool isOn = true;
+long last_reset = 0;
 
 // Function that sets AT commands
-void sendCommand(const char* cmd, const char* param = NULL) {
+bool send_command(const char* cmd, const char* param = NULL) {
   bluetooth.print("AT+");
   bluetooth.print(cmd);
   if (param) {
@@ -45,10 +49,12 @@ void sendCommand(const char* cmd, const char* param = NULL) {
   }
   bluetooth.print("\r\n");
   delay(DELAY);
+
+  return read_incoming() && !are_equal_ic(input, "OK");
 }
 
 // Function that compares the two strings, ignoring case
-bool areEqualCI(char const *s1, char const *s2) {
+bool are_equal_ic(char const *s1, char const *s2) {
     while (true) {
         char c1 = tolower(*s1);
         char c2 = tolower(*s2);
@@ -65,9 +71,28 @@ bool areEqualCI(char const *s1, char const *s2) {
 }
 
 // Function that writes to the transistor pins
-void writePins(bool val) {
+void write_pins(bool val) {
   digitalWrite(OUT_PIN1, val);
   digitalWrite(OUT_PIN2, val);
+}
+
+// Function that resets bluetooth AP info
+void reset_bluetooth() {
+  delay(DELAY);
+  
+  // Factory defaults + new name and pass
+  send_command("ORGL");
+  send_command("NAME", BT_NAME);
+  send_command("PSWD", BT_PASS);
+
+  // Commands to make it pairable
+  send_command("INIT");
+  send_command("INQ");
+  send_command("INQC");
+  
+  delay(2*DELAY);
+  
+  last_reset = millis();
 }
 
 void setup() {
@@ -76,25 +101,20 @@ void setup() {
   bluetooth.begin(38400);
   
   // Start with low output
-  writePins(LOW);
-  delay(DELAY);
+  write_pins(LOW);
   
-  // Factory defaults + new name and pass
-  sendCommand("ORGL");
-  sendCommand("NAME", BT_NAME);
-  sendCommand("PSWD", BT_PASS);
+  reset_bluetooth();
 
-  // Commands to make it pairable
-  sendCommand("INIT");
-  sendCommand("INQ");
-  sendCommand("INQC");
-
-  // Wait to enable output
-  delay(2*DELAY);
-  writePins(HIGH);
+  // Switch to high output
+  write_pins(HIGH);
 }
 
-void loop() {
+inline bool is_crlf(char c) {
+  return c == '\r' || c == '\n';
+}
+
+// Function to read incoming message from Bluetooth
+bool read_incoming() {
   while (bluetooth.available()) {
     char c = bluetooth.read();
     
@@ -104,20 +124,42 @@ void loop() {
     }
 
     // Only process commands on CR or LF
-    if (c == '\r' || c == '\n') {
+    if (is_crlf(c)) {
+      // Consume remaining CR/LF characters
+      while (is_crlf(bluetooth.peek())) {
+        bluetooth.read();
+      }
+      
       input[index] = '\0';
       index = 0;
-      if (areEqualCI(input, "off")) {
-        isOn = false;
-      } else if (areEqualCI(input, "on")) {
-        isOn = true;
-      }
+      return true;
     } else {
       input[index] = c;
       ++index;
     }
   }
+  return false;
+}
+
+void loop() {
+
+  // Reset if running for too long
+  if ((millis() - last_reset) > MAX_CONTINUOUS) {
+    reset_bluetooth();
+  }
+
+  if (!read_incoming()) {
+    return;
+  }
+
+  if (are_equal_ic(input, "off")) {
+    isOn = false;
+  } else if (are_equal_ic(input, "on")) {
+    isOn = true;
+  } else if (are_equal_ic(input, "toggle")) {
+    isOn = !isOn;
+  }
 
   // Update output
-  writePins(isOn);
+  write_pins(isOn);
 }
