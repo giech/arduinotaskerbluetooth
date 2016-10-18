@@ -2,7 +2,11 @@
  * Author: Ilias Giechaskiel
  * Website: https://ilias.giechaskiel.com
  * Description: Code that sets up bluetooth and waits for commands over serial
- * to switch power output
+ * to switch power output. Current commands it accepts: 
+ * on: turn on
+ * off: turn off
+ * [positive integer n]: turn off after n minutes
+ * 0: cancel delayed shutoff  
  *
  */
 
@@ -35,8 +39,9 @@
 SoftwareSerial bluetooth(RX_PIN, TX_PIN);
 char input[AR_LEN + 1];
 int index = 0;
-bool isOn = true;
 long last_reset = 0;
+long auto_shutoff = 0;
+bool isOn; // Initialize in setup
 
 // Function that sets AT commands
 bool send_command(const char* cmd, const char* param = NULL) {
@@ -71,9 +76,10 @@ bool are_equal_ic(char const *s1, char const *s2) {
 }
 
 // Function that writes to the transistor pins
-void write_pins(bool val) {
-  digitalWrite(OUT_PIN1, val);
-  digitalWrite(OUT_PIN2, val);
+void write_pins(uint8_t val) {
+  uint8_t w = val ? HIGH : LOW;
+  digitalWrite(OUT_PIN1, w);
+  digitalWrite(OUT_PIN2, w);
 }
 
 // Function that resets bluetooth AP info
@@ -107,6 +113,8 @@ void setup() {
 
   // Switch to high output
   write_pins(HIGH);
+
+  isOn = true;
 }
 
 inline bool is_crlf(char c) {
@@ -141,11 +149,22 @@ bool read_incoming() {
   return false;
 }
 
+inline void cancel_shutoff() {
+  auto_shutoff = 0;
+}
+
 void loop() {
 
   // Reset if running for too long
   if ((millis() - last_reset) > MAX_CONTINUOUS) {
     reset_bluetooth();
+  }
+
+  if (auto_shutoff > 0 && millis() > auto_shutoff) {
+    cancel_shutoff();
+    isOn = false;
+    write_pins(isOn);
+    return;
   }
 
   if (!read_incoming()) {
@@ -154,10 +173,19 @@ void loop() {
 
   if (are_equal_ic(input, "off")) {
     isOn = false;
+    cancel_shutoff();
   } else if (are_equal_ic(input, "on")) {
     isOn = true;
-  } else if (are_equal_ic(input, "toggle")) {
-    isOn = !isOn;
+    cancel_shutoff();
+  }else {
+    long shutoff = atol(input);
+
+    // by default, cancel auto off
+    if (shutoff == 0) {
+      cancel_shutoff();
+    } else if (shutoff > 0) {
+      auto_shutoff = millis() + shutoff*60*1000;
+    }
   }
 
   // Update output
