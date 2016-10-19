@@ -153,6 +153,31 @@ inline void cancel_shutoff() {
   auto_shutoff = 0;
 }
 
+
+// parse string to long if it is >=0, else -1
+long parse_long(const char* input) {
+  long l = 0;
+  bool ok = false;
+
+  while (*input != '\0') {
+    char c = *input;
+    if (c >= '0' && c <= '9') {
+      l = 10*l + (c - '0');
+      ok = true;
+    } else {
+      ok = false;
+      break;
+    }
+    ++input;
+  }
+
+  if (!ok) {
+    l = -1;
+  }
+
+  return l;
+}
+
 void loop() {
 
   // Reset if running for too long
@@ -178,9 +203,9 @@ void loop() {
     isOn = true;
     cancel_shutoff();
   }else {
-    long shutoff = atol(input);
+    long shutoff = parse_long(input);//atol(input);
 
-    // by default, cancel auto off
+    // 0 cancels shutoff
     if (shutoff == 0) {
       cancel_shutoff();
     } else if (shutoff > 0) {
@@ -191,3 +216,4 @@ void loop() {
   // Update output
   write_pins(isOn);
 }
+
