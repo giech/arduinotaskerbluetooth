@@ -18,16 +18,23 @@ public class BundleManager {
     // For logging
     private final static String TAG = "BundleManager";
 
+    public final static String PACKAGE_NAME = "com.giechaskiel.ilias.bluetoothserialfromtasker";
+
     // Keys for bundle
-    public final static String BUNDLE_STRING_MAC = "com.giechaskiel.ilias.bluetoothserialfromtasker.STRING_MAC";
-    public final static String BUNDLE_STRING_MSG = "com.giechaskiel.ilias.bluetoothserialfromtasker.STRING_MSG";
-    public final static String BUNDLE_BOOL_CRLF = "com.giechaskiel.ilias.bluetoothserialfromtasker.BOOL_CRLF";
+    public final static String BUNDLE_STRING_MAC = PACKAGE_NAME + ".STRING_MAC";
+    public final static String BUNDLE_STRING_MSG = PACKAGE_NAME + ".STRING_MSG";
+    public final static String BUNDLE_BOOL_CRLF  = PACKAGE_NAME + ".BOOL_CRLF";
 
 
     // only accept valid MAC addresses of form 00:11:22:AA:BB:CC, where colons can be dashes
     private static boolean isMacValid(String mac) {
         if (mac == null) {
             return false;
+        }
+
+        // We allow variable MACs
+        if (mac.startsWith(("%"))) {
+            return true;
         }
 
         return Pattern.matches("([0-9a-fA-F]{2}[:-]){5}[0-9a-fA-F]{2}", mac);

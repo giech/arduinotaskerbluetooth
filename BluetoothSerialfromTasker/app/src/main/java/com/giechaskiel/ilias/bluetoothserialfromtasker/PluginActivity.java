@@ -24,7 +24,12 @@ import android.widget.Toast;
 
 import com.twofortyfouram.locale.sdk.client.ui.activity.AbstractPluginActivity;
 
+import net.dinglisch.android.tasker.TaskerPlugin;
+
 import java.util.Set;
+
+import static com.giechaskiel.ilias.bluetoothserialfromtasker.BundleManager.BUNDLE_STRING_MAC;
+import static com.giechaskiel.ilias.bluetoothserialfromtasker.BundleManager.BUNDLE_STRING_MSG;
 
 
 public final class PluginActivity extends AbstractPluginActivity {
@@ -140,7 +145,16 @@ public final class PluginActivity extends AbstractPluginActivity {
         String mac = macText.getText().toString();
         String msg = ((EditText) findViewById(R.id.msg)).getText().toString();
         boolean crlf = ((CheckBox) findViewById(R.id.checkbox)).isChecked();
-        return BundleManager.generateBundle(mac, msg, crlf);
+
+        Bundle bundle = BundleManager.generateBundle(mac, msg, crlf);
+
+        if (TaskerPlugin.Setting.hostSupportsOnFireVariableReplacement(this)) {
+            TaskerPlugin.Setting.setVariableReplaceKeys(bundle, new String[]{
+                    BUNDLE_STRING_MAC,
+                    BUNDLE_STRING_MSG});
+        }
+
+        return bundle;
     }
 
     // Method that creates summary of bundle
