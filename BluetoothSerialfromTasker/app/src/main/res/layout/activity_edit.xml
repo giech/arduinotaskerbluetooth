@@ -24,12 +24,20 @@
         android:hint="@string/message_hint" />
 
     <CheckBox
-        android:id="@+id/checkbox"
+        android:id="@+id/crlf_checkbox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/checkbox_message"
+        android:text="@string/crlf_message"
         android:layout_gravity="center_horizontal"
         android:checked="true" />
+
+    <CheckBox
+        android:id="@+id/hex_checkbox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/hex_message"
+        android:layout_gravity="center_horizontal"
+        android:checked="false" />
 
     <Button
         android:layout_width="wrap_content"

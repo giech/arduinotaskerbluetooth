@@ -60,7 +60,8 @@ public final class PluginActivity extends AbstractPluginActivity {
 
                 mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
                 if (mBluetoothAdapter == null) {
-                    String msg = "This device does not support bluetooth";
+                    Context context = getApplicationContext();
+                    String msg = context.getResources().getString(R.string.bluetooth_error);
                     Log.w(TAG, msg);
                     Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
                     return;
@@ -135,8 +136,10 @@ public final class PluginActivity extends AbstractPluginActivity {
         ((EditText) findViewById(R.id.msg)).setText(msg);
 
         final boolean crlf = BundleManager.getCrlf(bundle);
-        ((CheckBox) findViewById(R.id.checkbox)).setChecked(crlf);
+        ((CheckBox) findViewById(R.id.crlf_checkbox)).setChecked(crlf);
 
+        final boolean hex = BundleManager.getHex(bundle);
+        ((CheckBox) findViewById(R.id.hex_checkbox)).setChecked(hex);
     }
 
     // Method that returns the bundle to be saved
@@ -144,9 +147,21 @@ public final class PluginActivity extends AbstractPluginActivity {
     public Bundle getResultBundle() {
         String mac = macText.getText().toString();
         String msg = ((EditText) findViewById(R.id.msg)).getText().toString();
-        boolean crlf = ((CheckBox) findViewById(R.id.checkbox)).isChecked();
+        boolean crlf = ((CheckBox) findViewById(R.id.crlf_checkbox)).isChecked();
+        boolean hex = ((CheckBox) findViewById(R.id.hex_checkbox)).isChecked();
 
-        Bundle bundle = BundleManager.generateBundle(mac, msg, crlf);
+        Bundle bundle = BundleManager.generateBundle(mac, msg, crlf, hex);
+
+        if (bundle == null) {
+            Context context = getApplicationContext();
+            String error = BundleManager.getErrorMessage(context, mac, msg, crlf, hex);
+            if (error != null) {
+                Toast.makeText(context, error, Toast.LENGTH_LONG).show();
+            } else {
+                Log.e(TAG, "Null bundle, but no error");
+            }
+            return null;
+        }
 
         if (TaskerPlugin.Setting.hostSupportsOnFireVariableReplacement(this)) {
             TaskerPlugin.Setting.setVariableReplaceKeys(bundle, new String[]{

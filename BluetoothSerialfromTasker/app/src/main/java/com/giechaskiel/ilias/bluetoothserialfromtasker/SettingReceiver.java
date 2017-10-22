@@ -44,8 +44,6 @@ public class SettingReceiver extends AbstractPluginSettingReceiver {
     @Override
     protected void firePluginSetting(Context context, Bundle bundle) {
         final String mac = BundleManager.getMac(bundle);
-        final String msg = BundleManager.getMsg(bundle);
-        final boolean crlf = BundleManager.getCrlf(bundle);
 
         BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter == null) {
@@ -78,21 +76,16 @@ public class SettingReceiver extends AbstractPluginSettingReceiver {
                         socket.connect();
                     }
 
-                    OutputStream out = socket.getOutputStream();
-
-                    // Write message
-                    byte[] bytes = msg.getBytes();
-                    out.write(bytes);
-
-                    // And CRLF if necessary
-                    if (crlf) {
-                        bytes = "\r\n".getBytes();
+                    byte[] bytes = BundleManager.getMsgBytes(bundle);
+                    if (bytes != null) {
+                        OutputStream out = socket.getOutputStream();
                         out.write(bytes);
+                        out.flush();
+                        Log.i(TAG, "Sent message successfully");
+                    } else {
+                        // this can happen, for instance, if string replacement of hex is incorrect
+                        Log.e(TAG, "Got null bytes, so did not send message");
                     }
-
-                    out.flush();
-                    Log.i(TAG, "Sent message successfully");
-
                 } catch (Exception e) {
                     Log.e(TAG, "Exception while connecting and communicating with device", e);
                 } finally {
@@ -100,16 +93,13 @@ public class SettingReceiver extends AbstractPluginSettingReceiver {
                         try {
                             socket.close();
                         } catch (IOException e) {
-
+                            Log.e(TAG, "Exception trying to close socket", e);
                         }
                     }
-
                 }
-
                 return;
             }
         }
-
         Log.e(TAG, "MAC address provided is not in paired list");
     }
 }
